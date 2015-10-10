@@ -12,7 +12,7 @@ class ServoCtl:
             print 'Error: No Servo Found'
 
     def write(self, str0):
-        if not self.ser:
+        if self.ser is None:
             try:
                 self.ser = serial.Serial("/dev/ttyACM0", 115200)
             except Exception, e:
