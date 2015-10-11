@@ -7,12 +7,19 @@ import imaging
 from servoctl import ServoCtl
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
+import OCR
+import camctl
 # ttyACM0
 
 from django.conf.urls import include, url
 # from django.contrib import admin
 
+print 'Setting Camera...'
+cameractl = camctl.CameraCtl()
+print 'Starting ServoCtl...'
 ser = ServoCtl()
+print 'Connecting to OCR_Azure_Server...'
+ocr_host = OCR.OnlineOCR()
 
 
 def servoctl(requests, str0):
@@ -24,13 +31,18 @@ def welcome(request):
 
 
 def camera(request):
-    os.system("fswebcam -d /dev/video0 -r 1600*1200 --no-banner --no-timestamp /home/pi/webcam.bmp")
-    wrapper = FileWrapper(open("/home/pi/webcam.bmp", "rb"))
+    cameractl.snapshot()
+    wrapper = FileWrapper(open(cameractl.path, "rb"))
     return HttpResponse(wrapper, "image/jpeg")
 
 
+def ocr(request):
+    cameractl.snapshot()
+    return HttpResponse(ocr_host.recg(cameractl.path))
+
+
 def process_image():
-    myimg = cv2.imread("/home/pi/webcam.bmp")
+    myimg = cv2.imread(cameractl.path)
     image = cv2.cvtColor(myimg, cv2.COLOR_RGB2GRAY)
     # w=img.shape[1]
     # h=img.shape[0]
@@ -42,15 +54,15 @@ def process_image():
 
 
 def camera_tiny(request):
-    os.system("fswebcam -d /dev/video0 -r 1600*1200 --no-banner --no-timestamp /home/pi/webcam.bmp")
-    process_image();
+    cameractl.snapshot()
+    process_image()
     wrapper = FileWrapper(open("/home/pi/image_resize.bmp", "rb"))
     return HttpResponse(wrapper, "image/jpeg")
 
 
 def camera_digital(request):
-    os.system("fswebcam -d /dev/video0 -r 1600*1200 --no-banner --no-timestamp /home/pi/webcam.bmp")
-    process_image();
+    cameractl.snapshot()
+    process_image()
     myimg = cv2.imread("/home/pi/image_resize.bmp")
 
     w = myimg.shape[1]
@@ -67,11 +79,10 @@ def camera_digital(request):
 
 
 
-
-
 urlpatterns = [
-    url(r'^servoctl/(?P<str0>\S+)', servoctl),
     url(r'^welcome', welcome),
+    url(r'^servoctl/(?P<str0>\S+)', servoctl),
+    url(r'^ocr$', ocr),
     url(r'^camera$', camera),
     url(r'^camera_tiny$', camera_tiny),
     url(r'^camera_digital$', camera_digital),

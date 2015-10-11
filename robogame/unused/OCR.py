@@ -3,7 +3,7 @@ __author__ = 'suquark'
 import base64
 import json
 
-import requests
+import robogame.unused.HttpClient
 
 
 class OnlineOCR:
@@ -15,37 +15,32 @@ class OnlineOCR:
 
     def __init__(self):
         try:
-            self.client = requests.Session()
-
-            text = self.client.get('https://www.projectoxford.ai/demo/visions').text
+            self.client = robogame.unused.HttpClient.HttpClient()
+            text = self.client.Get('https://www.projectoxford.ai/demo/visions')
             sp = '<input name="__RequestVerificationToken" type="hidden" value="'
             txt = text[text.find(sp) + len(sp):]
             self.token = txt[:txt.find('"')]
-            print 'Online OCR Login'
         except:
-            print 'Online OCR Fail'
+            return
 
     def recg(self, path):
-        try:
-            data = base64.encodestring(open(path).read())
-            r = self.client.post('https://www.projectoxford.ai/Demo/Ocr',
-                                 {'Data': data, 'isUrl': 'false', 'languageCode': 'en',
-                                  '__RequestVerificationToken': self.token})
-            dr = json.loads(json.loads(unicode(r.text)))
-            s = ''
-            for lines in dr['regions']:
-                for line in lines['lines']:
-                    for box in line['words']:
-                        s += box['text'] + ' '
-                    s += '\r\n'
+        data = base64.encodestring(open(path).read())
+        r = self.client.Post('https://www.projectoxford.ai/Demo/Ocr',
+                             {'Data': data, 'isUrl': 'false', 'languageCode': 'en',
+                              '__RequestVerificationToken': self.token})
+        dr = json.loads(json.loads(unicode(r)))
+        s = ''
+        for lines in dr['regions']:
+            for line in lines['lines']:
+                for box in line['words']:
+                    s += box['text'] + ' '
                 s += '\r\n'
-            return s
-        except:
-            return 'ERROR'
+            s += '\r\n'
+        return s
 
 
 """
-# EXAMPLE:
+EXAMPLE:
 
 a = OnlineOCR()
 print a.recg('/Users/suquark/Desktop/camera.jpeg')
