@@ -1,4 +1,4 @@
-import cookielib, urllib, urllib2, socket, requests
+import cookielib, urllib, urllib2, socket
 
 
 class HttpClient:
@@ -60,12 +60,6 @@ class HttpClient:
         # self.__cookie.clear() clean cookie
 
 
-
-    def post_msg(self, url, header, data):
-        # print self.gen_data_send(data)
-        # print url
-        r = requests.get(url, data=data, headers=header, cookies=self.__cookie)
-        return r.text
 
 
 

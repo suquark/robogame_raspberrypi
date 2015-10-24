@@ -7,8 +7,9 @@ import imaging
 from servoctl import ServoCtl
 from django.http import HttpResponse
 from django.core.servers.basehttp import FileWrapper
-import OCR
+import unused.OCR2 as OCR
 import camctl
+import multiprocessing
 # ttyACM0
 
 from django.conf.urls import include, url
@@ -19,11 +20,22 @@ cameractl = camctl.CameraCtl()
 print 'Starting ServoCtl...'
 ser = ServoCtl()
 print 'Connecting to OCR_Azure_Server...'
-ocr_host = OCR.OnlineOCR()
+ocr_host = None#OCR.OnlineOCR()
 
 
 def servoctl(requests, str0):
     return HttpResponse(ser.write(str0))
+
+
+def servoctl_trans(fpath):
+    print 'Trans..'
+    ser.write_file(fpath)
+
+def servoctl_file(requests, fpath):
+    # p = multiprocessing.Process(target=servoctl_trans, args=fpath)
+    # p.start()
+    servoctl_trans(fpath)
+    return HttpResponse('New process started.')
 
 
 def welcome(request):
@@ -81,6 +93,7 @@ def camera_digital(request):
 
 urlpatterns = [
     url(r'^welcome', welcome),
+    url(r'^servoctl_file/(?P<fpath>\S+)', servoctl_file),
     url(r'^servoctl/(?P<str0>\S+)', servoctl),
     url(r'^ocr$', ocr),
     url(r'^camera$', camera),

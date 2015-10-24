@@ -21,22 +21,24 @@ class OnlineOCR:
             txt = text[text.find(sp) + len(sp):]
             self.token = txt[:txt.find('"')]
         except:
-            return
+            print '[ERROR] OCR Error!'
 
     def recg(self, path):
-        data = base64.encodestring(open(path).read())
-        r = self.client.Post('https://www.projectoxford.ai/Demo/Ocr',
-                             {'Data': data, 'isUrl': 'false', 'languageCode': 'en',
-                              '__RequestVerificationToken': self.token})
-        dr = json.loads(json.loads(unicode(r)))
-        s = ''
-        for lines in dr['regions']:
-            for line in lines['lines']:
-                for box in line['words']:
-                    s += box['text'] + ' '
+
+            data = base64.encodestring(open(path).read())
+            r = self.client.Post('https://www.projectoxford.ai/Demo/Ocr',
+                                 {'Data': data, 'isUrl': 'false', 'languageCode': 'en',
+                                  '__RequestVerificationToken': self.token})
+            dr = json.loads(json.loads(unicode(r)))
+            s = ''
+            for lines in dr['regions']:
+                for line in lines['lines']:
+                    for box in line['words']:
+                        s += box['text'] + ' '
+                    s += '\r\n'
                 s += '\r\n'
-            s += '\r\n'
-        return s
+            return s
+
 
 
 """
